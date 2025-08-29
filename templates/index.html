@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GlobalChat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Левая панель -->
+    <div class="sidebar">
+      <div class="logo">
+        <i class="fas fa-comment-dots pulse"></i>
+        <h2>GlobalChat</h2>
+      </div>
+
+      <!-- Навигация -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="friends">
+          <i class="fas fa-user-friends"></i> Друзья
+        </button>
+        <button class="tab-btn" data-tab="groups">
+          <i class="fas fa-users"></i> Группы
+        </button>
+        <button class="tab-btn" data-tab="channels">
+          <i class="fas fa-bullhorn"></i> Каналы
+        </button>
+        <button class="tab-btn" data-tab="settings">
+          <i class="fas fa-cog"></i> Настройки
+        </button>
+      </nav>
+
+      <div class="logout">
+        <button onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> Выход
+        </button>
+      </div>
+    </div>
+
+    <!-- Центральная панель -->
+    <div class="main-content">
+      <!-- Вкладка: Друзья -->
+      <div class="tab-content active" id="friends-tab">
+        <div class="search-bar">
+          <input type="text" id="friend-input" placeholder="Добавить друга по логину..." />
+          <button onclick="addFriend()"><i class="fas fa-plus"></i></button>
+        </div>
+        <div style="padding: 0 15px 10px;">
+          <button onclick="loadChats()" style="
+            background: #64748b; color: white; border: none; padding: 6px 12px;
+            border-radius: 6px; font-size: 13px; cursor: pointer; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+          ">
+            <i class="fas fa-sync"></i> Обновить
+          </button>
+        </div>
+        <ul id="friends-list" class="contacts-list"></ul>
+      </div>
+
+      <!-- Вкладка: Группы -->
+      <div class="tab-content" id="groups-tab">
+        <p style="color: #aaa; text-align: center; margin-top: 20px;">
+          <i class="fas fa-info-circle"></i> Группы в разработке
+        </p>
+      </div>
+
+      <!-- Вкладка: Каналы -->
+      <div class="tab-content" id="channels-tab">
+        <p style="color: #aaa; text-align: center; margin-top: 20px;">
+          <i class="fas fa-info-circle"></i> Каналы в разработке
+        </p>
+      </div>
+
+      <!-- Вкладка: Настройки -->
+      <div class="tab-content" id="settings-tab">
+        <div class="settings-card">
+          <h3>Ваш профиль</h3>
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img id="avatar-preview" src="/static/default-avatar.png" width="80" height="80" style="border-radius: 50%;">
+            <div>
+              <input type="text" id="avatar-url" placeholder="Ссылка на аватар" style="width: 100%; margin-top: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 6px;">
+              <button onclick="updateAvatar()" style="margin-top: 10px; background: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 6px;">Обновить</button>
+            </div>
+          </div>
+          <label>Описание:</label>
+          <textarea id="bio-input" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 10px;"></textarea>
+          <button onclick="updateBio()" style="background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px;">Сохранить</button>
+
+          <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
+
+          <h3>Настройки</h3>
+          <div class="theme-toggle">
+            <label>Тёмная тема</label>
+            <input type="checkbox" id="dark-theme-toggle">
+          </div>
+          <button class="danger-btn" onclick="logout()">Выйти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Правая панель (чат) -->
+    <div class="chat-area">
+      <div class="chat-header">
+        <h3 id="chat-title">Выберите контакт</h3>
+        <div id="typing-indicator" style="color: #64748b; font-size: 13px; margin-top: 4px; display: none;">Печатает...</div>
+      </div>
+      <div id="messages" class="messages"></div>
+      <div class="input-area">
+        <input type="text" id="message-input" placeholder="Введите сообщение...">
+        <input type="file" id="file-input" accept="image/*,audio/*" style="display: none;">
+        <button onclick="document.getElementById('file-input').click()">
+          <i class="fas fa-paperclip"></i>
+        </button>
+        <button onclick="sendVoice()" title="Голосовое сообщение">
+          <i class="fas fa-microphone"></i>
+        </button>
+        <button onclick="sendMessage()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно профиля -->
+  <div id="profile-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close" onclick="closeProfileModal()">&times;</span>
+      <img id="modal-avatar" src="" width="100" height="100" style="border-radius: 50%; margin: 10px auto; display: block;">
+      <h3 id="modal-username"></h3>
+      <p id="modal-bio" style="color: #64748b; font-size: 14px;"></p>
+      <p id="modal-status" style="color: #10b981; font-size: 13px;">Онлайн</p>
+    </div>
+  </div>
+
+  <!-- Подключаем скрипты -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script>
+    document.body.dataset.user = "{{ username }}";
+  </script>
+</body>
+</html>
