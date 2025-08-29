@@ -1,4 +1,5 @@
 # app.py
+
 from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
 import sqlite3
@@ -8,6 +9,7 @@ import json
 
 app = Flask(__name__)
 app.secret_key = 'your-super-secret-key'
+# cors_allowed_origins="*" разрешает подключения с любого домена, что необходимо для Render.
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 UPLOAD_FOLDER = 'uploads'
@@ -124,7 +126,7 @@ def logout():
 def send_message():
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     sender = session['login']
     content = request.form.get('content', '').strip()
     receiver = request.form.get('receiver')
@@ -175,11 +177,11 @@ def uploaded_file(filename):
 def get_messages(username):
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     other_user = request.args.get('with')
     if not other_user:
         return jsonify([])
-        
+    
     conn = sqlite3.connect('chat.db')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -197,7 +199,7 @@ def get_messages(username):
 def get_chats(username):
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     friends = []
     try:
         conn = sqlite3.connect('chat.db')
@@ -231,13 +233,13 @@ def get_chats(username):
 def add_friend():
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     user = session['login']
     friend = request.json.get('friend')
     
     if not friend:
         return jsonify({'error': 'Friend not specified'}), 400
-        
+    
     if not user_exists(friend):
         return jsonify({'error': 'Пользователь не найден'}), 400
 
@@ -260,7 +262,7 @@ def add_friend():
 def delete_message():
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     data = request.json
     msg_id = data.get('id')
     sender = session['login']
@@ -302,7 +304,7 @@ def get_profile(username):
 def update_profile():
     if 'login' not in session:
         return jsonify({'error': 'Not logged in'}), 401
-        
+    
     user = session['login']
     avatar = request.form.get('avatar')
     bio = request.form.get('bio', '').strip()[:200]
@@ -361,5 +363,6 @@ def handle_connect():
 def handle_disconnect():
     print('Client disconnected')
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8000, debug=True)
+# НЕ ЗАПУСКАЕМ СЕРВЕР В ЭТОМ ФАЙЛЕ, ТАК КАК ЭТО БУДЕТ ДЕЛАТЬ GUNICORN.
+# if __name__ == '__main__':
+#     socketio.run(app, host='0.0.0.0', port=8000, debug=True)
