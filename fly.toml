@@ -1,0 +1,12 @@
+app = "nebula"
+
+[build]
+  builder = "paketobuildpacks/builder-jammy-base"
+  buildpacks = ["gcr.io/paketo-buildpacks/python"]
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
